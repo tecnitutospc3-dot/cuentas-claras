@@ -134,6 +134,10 @@
   .toast.show{opacity:1;}
 
   .footer-actions{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);}
+
+  .cloud-dot{width:7px;height:7px;border-radius:50%;background:var(--panel-2);border:1px solid var(--line);display:inline-block;}
+  .cloud-dot.ok{background:var(--jade);border-color:var(--jade);}
+  .cloud-dot.error{background:var(--brick);border-color:var(--brick);}
 </style>
 </head>
 <body>
@@ -142,7 +146,10 @@
   <div class="hero">
     <div class="hero-top">
       <span class="brand">Cuentas Claras</span>
-      <span class="cycle-label" id="cycleLabel">—</span>
+      <span style="display:flex;align-items:center;gap:6px;">
+        <span class="cloud-dot" id="cloudDot" title="Estado de la nube"></span>
+        <span class="cycle-label" id="cycleLabel">—</span>
+      </span>
     </div>
     <div class="saldo-caption">Disponible ahora</div>
     <div class="saldo-num num" id="saldoNum">$0.00</div>
@@ -158,6 +165,7 @@
     <button class="tab" data-tab="registrar">Registrar</button>
     <button class="tab" data-tab="ingresos">Ingresos</button>
     <button class="tab" data-tab="historial">Historial</button>
+    <button class="tab" data-tab="nube">Nube</button>
   </div>
 
   <div class="panel active" id="panel-resumen">
@@ -275,6 +283,29 @@
     </div>
   </div>
 
+  <div class="panel" id="panel-nube">
+    <div class="section-title">Respaldo en la nube</div>
+    <p class="muted" id="cloudStatusText">Sin conectar. Tus datos solo viven en este celular — si borras el navegador, se pierden.</p>
+
+    <div id="cloudDisconnected">
+      <form class="form" id="cloudForm">
+        <div class="field"><label>URL de tu Apps Script</label><input type="text" id="cloudUrlInput" placeholder="https://script.google.com/macros/s/..."></div>
+        <div class="field"><label>Clave secreta</label><input type="text" id="cloudKeyInput" placeholder="Tu clave"></div>
+        <div class="form-actions"><button type="submit" class="btn primary">Conectar</button></div>
+      </form>
+      <p class="muted" style="margin-top:10px;">¿No tienes esto todavía? Sigue las instrucciones del archivo <strong>CLOUD-SETUP.txt</strong> — toma unos 5 minutos, se hace una sola vez.</p>
+    </div>
+
+    <div class="hidden" id="cloudConnected">
+      <div class="row"><div class="row-main"><div class="row-name">Estado</div><div class="row-note" id="cloudStatusDetail">—</div></div></div>
+      <div class="form-actions" style="margin-top:10px;">
+        <button class="btn small" data-action="sync-now">🔄 Sincronizar ahora</button>
+        <button class="btn small ghost" data-action="disconnect-cloud">Desconectar</button>
+      </div>
+      <p class="muted" style="margin-top:10px;">Guarda tu URL y clave en un lugar seguro (notas del celular) — si borras el navegador, necesitas volver a pegarlas aquí para recuperar tus datos.</p>
+    </div>
+  </div>
+
 </div>
 
 <div class="toast" id="toast"></div>
@@ -289,8 +320,8 @@ const DEFAULT_CONFIG = {
     {id:'arriendo', name:'Arriendo', type:'fijo', recurrence:'single', amount:125.00, dueDay:null, alert:true, note:'Agrega el día de pago cuando lo confirmes'},
     {id:'colegiatura', name:'Colegiatura tecnológico (esposa)', type:'fijo', recurrence:'single', amount:120.00, dueDay:null, alert:true, note:'Agrega el día de pago cuando lo confirmes'},
     {id:'ayuda_mama', name:'Ayuda a mamá', type:'fijo', recurrence:'single', amount:120.00, dueDay:null, alert:true, note:'Ayuda mensual fija'},
-    {id:'visa', name:'Tarjeta Visa Titanium', type:'variable', recurrence:'monthly', amount:null, dueDay:20, alert:true, note:'Diners Club. Corte día 4, incluye el cargo fijo de Internet ($33.93) — el pago vence el día 20 del mismo mes. Cada corte genera un nuevo estado: registra cada pago aquí.'},
-    {id:'discover', name:'Tarjeta Discover More', type:'variable', recurrence:'monthly', amount:null, dueDay:3, alert:true, note:'Diners Club. Corte día 19 — el pago suele vencer ~día 3 del mes siguiente. Cada corte genera un nuevo estado: registra cada pago aquí.'},
+    {id:'visa', name:'Tarjeta Visa Titanium', type:'variable', recurrence:'monthly', amount:null, corteDay:4, graceDays:16, lastPaidDate:null, alert:true, note:'Diners Club. Corte día 4, incluye el cargo fijo de Internet ($33.93) — el pago vence el día 20 del mismo mes.'},
+    {id:'discover', name:'Tarjeta Discover More', type:'variable', recurrence:'monthly', amount:null, corteDay:19, graceDays:15, lastPaidDate:null, alert:true, note:'Diners Club. Corte día 19 — el pago vence ~15 días después (día 3 del mes siguiente).'},
     {id:'celular', name:'Celular (recarga)', type:'fijo', recurrence:'single', amount:10.00, dueDay:null, alert:false, note:'Recarga mensual'},
     {id:'luz', name:'Luz', type:'variable', recurrence:'single', amount:null, dueDay:null, alert:false, note:'Suele estar entre $40 y $60'},
     {id:'agua', name:'Agua', type:'variable', recurrence:'single', amount:0, dueDay:null, alert:false, note:'Actualmente $0'}
@@ -306,6 +337,7 @@ const CATEGORY_LABELS = {
   delivery:'Delivery', uber:'Uber / transporte extra', imprevisto:'Gasto imprevisto', otro:'Otro'
 };
 const HORMIGA_CATS = ['comida_afuera','delivery','uber','imprevisto','otro'];
+const CONFIG_VERSION = 2;
 
 let CONFIG, CURRENT_CYCLE, CYCLES_INDEX, historyCache = {};
 
@@ -325,7 +357,12 @@ function showToast(msg){
 
 // ---------- storage (localStorage: datos solo en este dispositivo) ----------
 async function storageGet(key){ try{ return localStorage.getItem(key); }catch(e){ return null; } }
-async function storageSet(key, value){ try{ localStorage.setItem(key, value); return true; }catch(e){ showToast('No se pudo guardar. Intenta de nuevo.'); return false; } }
+async function storageSet(key, value){
+  try{ localStorage.setItem(key, value); }
+  catch(e){ showToast('No se pudo guardar. Intenta de nuevo.'); return false; }
+  scheduleCloudPush();
+  return true;
+}
 
 async function loadConfig(){ const v = await storageGet('presupuesto:config'); return v ? JSON.parse(v) : null; }
 async function saveConfig(cfg){ await storageSet('presupuesto:config', JSON.stringify(cfg)); }
@@ -336,9 +373,125 @@ async function saveCyclesIndex(idx){ await storageSet('presupuesto:cycles-index'
 async function loadCurrentId(){ return await storageGet('presupuesto:currentCycleId'); }
 async function saveCurrentId(id){ await storageSet('presupuesto:currentCycleId', id); }
 
-async function init(){
+// ---------- nube (respaldo vía Google Sheets + Apps Script) ----------
+let cloudUrl = '';
+let cloudKey = '';
+let cloudStatus = 'idle'; // 'idle' | 'ok' | 'error'
+let cloudPushTimer = null;
+
+async function cloudFetch(method, data){
+  const sep = cloudUrl.indexOf('?')===-1 ? '?' : '&';
+  const url = cloudUrl + sep + 'key=' + encodeURIComponent(cloudKey);
+  let resp;
+  if(method === 'GET'){
+    resp = await fetch(url);
+  } else {
+    // Content-Type text/plain a propósito: evita el preflight CORS que
+    // Google Apps Script no maneja bien con application/json.
+    resp = await fetch(url, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(data)
+    });
+  }
+  if(!resp.ok) throw new Error('HTTP '+resp.status);
+  const json = await resp.json();
+  if(!json.ok) throw new Error(json.error || 'Error de la nube');
+  return json;
+}
+
+function snapshotAll(){
+  const snap = {};
+  Object.keys(localStorage).filter(k=>k.startsWith('presupuesto:')).forEach(k=>{ snap[k]=localStorage.getItem(k); });
+  return snap;
+}
+function applySnapshot(snap){
+  Object.keys(snap).forEach(k=> localStorage.setItem(k, snap[k]));
+}
+
+async function guardarEnNube(){ await cloudFetch('POST', snapshotAll()); }
+async function cargarDesdeNube(){
+  const json = await cloudFetch('GET');
+  const hadData = json.data && Object.keys(json.data).length > 0;
+  if(hadData) applySnapshot(json.data);
+  return hadData;
+}
+
+function scheduleCloudPush(){
+  if(!cloudUrl || !cloudKey) return;
+  clearTimeout(cloudPushTimer);
+  cloudPushTimer = setTimeout(async ()=>{
+    try{ await guardarEnNube(); cloudStatus='ok'; }
+    catch(e){ cloudStatus='error'; console.error('Error guardando en la nube', e); }
+    renderNube();
+  }, 1200);
+}
+
+async function conectarNube(url, key){
+  const urlAnterior=cloudUrl, keyAnterior=cloudKey;
+  cloudUrl = url.trim(); cloudKey = key.trim();
+  try{
+    const hadData = await cargarDesdeNube();
+    if(!hadData) await cloudFetch('POST', snapshotAll());
+    localStorage.setItem('cc_cloud_url', cloudUrl);
+    localStorage.setItem('cc_cloud_key', cloudKey);
+    cloudStatus = 'ok';
+    await loadStateFromStorage();
+    renderAll();
+    showToast('Conectado a la nube');
+    return true;
+  }catch(e){
+    console.error('Error conectando a la nube', e);
+    cloudUrl = urlAnterior; cloudKey = keyAnterior;
+    cloudStatus = 'error';
+    showToast('No se pudo conectar: revisa la URL y la clave');
+    renderNube();
+    return false;
+  }
+}
+function desconectarNube(){
+  cloudUrl=''; cloudKey='';
+  localStorage.removeItem('cc_cloud_url');
+  localStorage.removeItem('cc_cloud_key');
+  cloudStatus='idle';
+  renderNube();
+  showToast('Desconectado (tus datos siguen en este celular)');
+}
+async function sincronizarAhora(){
+  if(!cloudUrl || !cloudKey){ showToast('Primero conecta la nube'); return; }
+  try{
+    await cargarDesdeNube();
+    await loadStateFromStorage();
+    renderAll();
+    cloudStatus='ok';
+    showToast('Sincronizado');
+  }catch(e){
+    cloudStatus='error';
+    showToast('No se pudo sincronizar');
+  }
+  renderNube();
+}
+
+async function loadStateFromStorage(){
   CONFIG = await loadConfig();
-  if(!CONFIG){ CONFIG = JSON.parse(JSON.stringify(DEFAULT_CONFIG)); await saveConfig(CONFIG); }
+  if(!CONFIG){
+    CONFIG = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+    CONFIG.__version = CONFIG_VERSION;
+    await saveConfig(CONFIG);
+  } else if((CONFIG.__version||0) < CONFIG_VERSION){
+    const defaultIds = new Set(DEFAULT_CONFIG.items.map(i=>i.id));
+    const oldById = {}; CONFIG.items.forEach(i=>{ oldById[i.id]=i; });
+    const customItems = CONFIG.items.filter(i=>!defaultIds.has(i.id));
+    const refreshedItems = JSON.parse(JSON.stringify(DEFAULT_CONFIG.items)).map(def=>{
+      const prev = oldById[def.id];
+      if(prev && prev.lastPaidDate) def.lastPaidDate = prev.lastPaidDate;
+      return def;
+    });
+    CONFIG.items = [...refreshedItems, ...customItems];
+    CONFIG.incomeSources = JSON.parse(JSON.stringify(DEFAULT_CONFIG.incomeSources));
+    CONFIG.__version = CONFIG_VERSION;
+    await saveConfig(CONFIG);
+  }
 
   CYCLES_INDEX = await loadCyclesIndex();
   let curId = await loadCurrentId();
@@ -355,6 +508,18 @@ async function init(){
     CURRENT_CYCLE = {id:curId, startDate:curId, incomeEntries:[], expenseEntries:[], checklistState:{}};
     await saveCycle(CURRENT_CYCLE);
   }
+  historyCache = {};
+}
+
+async function init(){
+  cloudUrl = localStorage.getItem('cc_cloud_url') || '';
+  cloudKey = localStorage.getItem('cc_cloud_key') || '';
+  if(cloudUrl && cloudKey){
+    try{ await cargarDesdeNube(); cloudStatus='ok'; }
+    catch(e){ cloudStatus='error'; console.error('No se pudo sincronizar al abrir', e); }
+  }
+
+  await loadStateFromStorage();
   bindStaticEvents();
   renderAll();
 
@@ -380,6 +545,10 @@ async function payItemMulti(itemId, amount, date, note){
   const entry = {id:uid(), itemId, name:item.name, amount:Number(amount), date, category:'fijo', note:note||''};
   CURRENT_CYCLE.expenseEntries.push(entry);
   await saveCycle(CURRENT_CYCLE);
+  if(!item.lastPaidDate || date > item.lastPaidDate){
+    item.lastPaidDate = date;
+    await saveConfig(CONFIG);
+  }
   showToast(`${item.name}: ${fmt.format(amount)} registrado`);
   renderAll();
 }
@@ -402,6 +571,11 @@ async function removeExpense(id){
   if(e && e.itemId){
     const item = CONFIG.items.find(i=>i.id===e.itemId);
     if(item && item.recurrence==='single') delete CURRENT_CYCLE.checklistState[e.itemId];
+    if(item && item.recurrence==='monthly' && item.lastPaidDate===e.date){
+      const remaining = CURRENT_CYCLE.expenseEntries.filter(x=>x.itemId===e.itemId && x.id!==id).map(x=>x.date).sort();
+      item.lastPaidDate = remaining.length ? remaining[remaining.length-1] : null;
+      await saveConfig(CONFIG);
+    }
   }
   CURRENT_CYCLE.expenseEntries = CURRENT_CYCLE.expenseEntries.filter(x=>x.id!==id);
   await saveCycle(CURRENT_CYCLE);
@@ -440,7 +614,12 @@ async function addConfigItem(name, amount, dueDay, recurrence){
   renderAll();
 }
 async function resetAll(){
-  Object.keys(localStorage).filter(k=>k.startsWith('presupuesto:')).forEach(k=>localStorage.removeItem(k));
+  if(cloudUrl && cloudKey){
+    try{ await cloudFetch('POST', {}); }catch(e){}
+  }
+  Object.keys(localStorage).forEach(k=>{
+    if(k.startsWith('presupuesto:') || k==='cc_cloud_url' || k==='cc_cloud_key') localStorage.removeItem(k);
+  });
   location.reload();
 }
 
@@ -468,21 +647,27 @@ function singleStatus(item){
   return {label:`Vence el día ${item.dueDay}`, cls:'neutral'};
 }
 function monthlyStatus(item){
-  if(!item.dueDay) return {label:'Configura fecha de vencimiento', cls:'neutral'};
+  if(!item.corteDay || item.graceDays==null) return {label:'Configura fechas', cls:'neutral'};
   const today = new Date(); today.setHours(0,0,0,0);
-  const payments = CURRENT_CYCLE.expenseEntries.filter(e=>e.itemId===item.id).sort((a,b)=>b.date.localeCompare(a.date));
-  let nextDue;
-  if(payments.length){
-    nextDue = nextDueAfter(payments[0].date+'T00:00:00', item.dueDay);
-  } else {
-    nextDue = new Date(today.getFullYear(), today.getMonth(), item.dueDay);
-    if(today.getDate() <= item.dueDay){ /* keep this month's date, may already be past-due logic below handles */ }
+
+  let corte = new Date(today.getFullYear(), today.getMonth(), item.corteDay);
+  if(corte > today) corte = new Date(today.getFullYear(), today.getMonth()-1, item.corteDay);
+
+  let due = new Date(corte); due.setDate(due.getDate() + item.graceDays);
+
+  if(item.lastPaidDate){
+    const lastPaid = new Date(item.lastPaidDate+'T00:00:00');
+    if(lastPaid >= corte){
+      corte = new Date(corte.getFullYear(), corte.getMonth()+1, item.corteDay);
+      due = new Date(corte); due.setDate(due.getDate() + item.graceDays);
+    }
   }
-  const diff = daysBetween(today, nextDue);
+
+  const diff = daysBetween(today, due);
   if(diff < 0) return {label:'Vencido', cls:'danger'};
   if(diff === 0) return {label:'Vence hoy', cls:'danger'};
   if(diff <= 3) return {label:`Vence en ${diff} día${diff>1?'s':''}`, cls:'warn'};
-  return {label: payments.length ? `Próximo estado ~día ${item.dueDay}` : `Vence el día ${item.dueDay}`, cls: payments.length ? 'ok' : 'neutral'};
+  return {label:`Vence el ${due.getDate()}/${due.getMonth()+1}`, cls:'neutral'};
 }
 function dueStatus(item){ return item.recurrence==='monthly' ? monthlyStatus(item) : singleStatus(item); }
 
@@ -510,6 +695,23 @@ function renderAll(){
   renderRegistrar();
   renderIngresos();
   renderHistorial();
+  renderNube();
+}
+
+function renderNube(){
+  const connected = !!(cloudUrl && cloudKey);
+  const dc = document.getElementById('cloudDisconnected');
+  const cc = document.getElementById('cloudConnected');
+  if(!dc || !cc) return;
+  dc.classList.toggle('hidden', connected);
+  cc.classList.toggle('hidden', !connected);
+  document.getElementById('cloudStatusText').textContent = connected
+    ? 'Tus datos se respaldan automáticamente en la nube.'
+    : 'Sin conectar. Tus datos solo viven en este celular — si borras el navegador, se pierden.';
+  const statusMap = {ok:'✅ Sincronizado', error:'⚠️ Error al sincronizar (revisa tu conexión a internet)', idle:'Conectado'};
+  if(connected) document.getElementById('cloudStatusDetail').textContent = statusMap[cloudStatus] || '';
+  const dot = document.getElementById('cloudDot');
+  if(dot) dot.className = 'cloud-dot ' + (connected ? cloudStatus : '');
 }
 
 function renderResumen(){
@@ -565,6 +767,7 @@ function checklistRow(item){
         <div class="row-main"><div class="row-name">${item.name}</div><div class="row-note">${item.note}</div></div>
         <div class="row-right">
           <span class="badge ${st.cls}">${st.label}</span>
+          <button class="btn small ghost" data-action="edit-card-dates" data-id="${item.id}">✎</button>
           <button class="btn small" data-action="toggle-payform" data-id="${item.id}">Registrar pago</button>
         </div>
       </div>
@@ -585,6 +788,7 @@ function checklistRow(item){
       </div>
       <div class="row-right">
         <span class="badge ${st.cls}">${st.label}</span>
+        ${item.alert ? `<button class="btn small ghost" data-action="edit-duedate" data-id="${item.id}">✎</button>` : ''}
         ${paid
           ? `<button class="btn small ghost" data-action="undo-pay" data-id="${item.id}">Deshacer</button>`
           : `<button class="btn small" data-action="toggle-payform" data-id="${item.id}">Marcar pagado</button>`}
@@ -715,6 +919,14 @@ function bindStaticEvents(){
     document.getElementById('incDate').value = todayISO();
   });
 
+  document.getElementById('cloudForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const url = document.getElementById('cloudUrlInput').value;
+    const key = document.getElementById('cloudKeyInput').value;
+    if(!url || !key) return;
+    await conectarNube(url, key);
+  });
+
   document.body.addEventListener('click', e=>{
     const btn = e.target.closest('[data-action]');
     if(!btn) return;
@@ -777,8 +989,32 @@ function bindStaticEvents(){
       const dueStr = prompt('Día de vencimiento (1-31, déjalo vacío si no aplica):');
       addConfigItem(name, amtStr?Number(amtStr):null, dueStr?Number(dueStr):null, 'single');
     }
+    else if(action==='edit-duedate'){
+      const item = CONFIG.items.find(i=>i.id===id);
+      const val = prompt(`Día de vencimiento para "${item.name}" (1-31, vacío para quitarlo):`, item.dueDay||'');
+      if(val===null) return;
+      item.dueDay = val ? Number(val) : null;
+      saveConfig(CONFIG).then(renderAll);
+    }
+    else if(action==='edit-card-dates'){
+      const item = CONFIG.items.find(i=>i.id===id);
+      const corte = prompt(`Día de corte para "${item.name}" (1-31):`, item.corteDay||'');
+      if(corte===null) return;
+      const grace = prompt('¿Cuántos días después del corte vence el pago?', item.graceDays!=null?item.graceDays:'');
+      if(grace===null) return;
+      item.corteDay = corte ? Number(corte) : null;
+      item.graceDays = grace!=='' ? Number(grace) : null;
+      saveConfig(CONFIG).then(renderAll);
+    }
+    else if(action==='sync-now'){ sincronizarAhora(); }
+    else if(action==='disconnect-cloud'){
+      if(confirm('¿Desconectar de la nube? Tus datos seguirán en este celular, pero dejarán de respaldarse automáticamente.')) desconectarNube();
+    }
     else if(action==='reset-all'){
-      if(confirm('¿Seguro que quieres borrar todos los datos guardados? Esta acción no se puede deshacer.')) resetAll();
+      const msg = (cloudUrl && cloudKey)
+        ? '¿Seguro que quieres borrar todos los datos guardados, incluyendo tu respaldo en la nube? Esta acción no se puede deshacer.'
+        : '¿Seguro que quieres borrar todos los datos guardados? Esta acción no se puede deshacer.';
+      if(confirm(msg)) resetAll();
     }
   });
 }
