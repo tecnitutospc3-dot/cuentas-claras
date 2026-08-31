@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#14181A">
+<meta name="theme-color" content="#0F1614">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -12,21 +12,23 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Cuentas Claras</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#14181A;
-    --panel:#1C2220;
-    --panel-2:#20261F;
-    --line:#2A302D;
-    --text:#ECE7DD;
-    --muted:#8B948E;
-    --jade:#4E9C6F;
-    --jade-dim:#2F5A42;
-    --brick:#B3452F;
+    --bg:#0F1614;
+    --panel:#17211E;
+    --panel-2:#1D2925;
+    --line:#2A3733;
+    --text:#EDF2EF;
+    --muted:#8CA098;
+    --jade:#3FB876;
+    --jade-dim:#1F4530;
+    --jade-ink:#062713;
+    --brick:#E0553C;
     --brick-dim:#4A2419;
-    --mustard:#C9A227;
+    --mustard:#E0AC2E;
     --mustard-dim:#4A3D14;
+    --blue:#4E8FCB;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -36,167 +38,267 @@
     font-family:'Inter',system-ui,-apple-system,sans-serif;
     line-height:1.45;
     -webkit-font-smoothing:antialiased;
+    padding-bottom:82px;
   }
-  .app{max-width:560px;margin:0 auto;padding:0 0 40px;}
+  .app{max-width:560px;margin:0 auto;}
   h1,h2,h3{font-family:'Lora',Georgia,serif;font-weight:600;margin:0;}
   .num{font-variant-numeric:tabular-nums;}
   button{font-family:inherit;cursor:pointer;}
-  input,select{font-family:inherit;}
+  input,select,textarea{font-family:inherit;}
 
-  .hero{
-    padding:22px 20px 18px;
-    border-bottom:1px solid var(--line);
-    position:sticky;top:0;background:var(--bg);z-index:10;
+  /* ---------- Top bar ---------- */
+  .topbar{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:16px 20px 10px;position:sticky;top:0;background:var(--bg);z-index:15;
   }
-  .hero-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;}
-  .brand{font-family:'Lora',serif;font-size:19px;font-weight:600;letter-spacing:.2px;}
-  .cycle-label{font-size:13px;color:var(--muted);}
-  .saldo-caption{font-size:13px;color:var(--muted);margin-bottom:2px;}
-  .saldo-num{font-family:'Lora',serif;font-size:44px;font-weight:700;line-height:1;}
+  .brand{font-family:'Lora',serif;font-size:19px;font-weight:600;}
+  .cloud-icon-btn{
+    position:relative;width:38px;height:38px;border-radius:50%;
+    background:var(--panel);border:1px solid var(--line);color:var(--text);
+    display:flex;align-items:center;justify-content:center;font-size:16px;
+  }
+  .sync-badge{
+    position:absolute;bottom:-2px;right:-2px;width:16px;height:16px;border-radius:50%;
+    background:var(--jade);color:var(--jade-ink);font-size:10px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;border:2px solid var(--bg);
+  }
+  .sync-badge.error{background:var(--brick);}
+
+  /* ---------- Screen ---------- */
+  .screen{padding:6px 20px 24px;display:none;}
+  .screen.active{display:block;}
+  .screen-title{font-size:22px;margin:6px 0 14px;}
+
+  /* ---------- Saldo hero card ---------- */
+  .saldo-card{
+    background:linear-gradient(160deg, var(--jade-dim), var(--panel) 65%);
+    border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:20px;
+  }
+  .saldo-caption{font-size:13px;color:var(--muted);}
+  .saldo-num{font-family:'Lora',serif;font-size:38px;font-weight:700;margin:2px 0 2px;}
   .saldo-num.neg{color:var(--brick);}
-  .saldo-num.pos{color:var(--jade);}
-  .hero-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+  .cycle-label{font-size:12.5px;color:var(--muted);margin-bottom:14px;}
+  .saldo-actions{display:flex;gap:8px;}
+
   .btn{
-    border:1px solid var(--line);background:var(--panel);color:var(--text);
-    padding:9px 14px;border-radius:8px;font-size:13.5px;font-weight:500;
+    border:1px solid var(--line);background:var(--panel-2);color:var(--text);
+    padding:10px 14px;border-radius:10px;font-size:13.5px;font-weight:600;
   }
   .btn:hover{border-color:#3a423e;}
-  .btn.primary{background:var(--jade-dim);border-color:var(--jade);color:#DFF3E7;}
-  .btn.small{padding:6px 10px;font-size:12.5px;}
+  .btn.primary{background:var(--jade);border-color:var(--jade);color:var(--jade-ink);}
+  .btn.small{padding:7px 11px;font-size:12.5px;}
   .btn.ghost{background:transparent;}
+  .btn.block{width:100%;text-align:center;}
   .btn.danger{border-color:var(--brick);color:#F4CFC5;}
-
-  .tabs{
-    display:flex;gap:2px;padding:10px 14px 0;overflow-x:auto;
-    border-bottom:1px solid var(--line);background:var(--bg);
-    position:sticky;top:112px;z-index:9;
+  .icon-btn{
+    width:30px;height:30px;border-radius:8px;border:1px solid var(--line);
+    background:var(--panel-2);color:var(--muted);font-size:13px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
   }
-  .tab{
-    flex:0 0 auto;background:none;border:none;color:var(--muted);
-    padding:10px 12px;font-size:13.5px;font-weight:500;
-    border-bottom:2px solid transparent;white-space:nowrap;
-  }
-  .tab.active{color:var(--text);border-bottom-color:var(--jade);}
 
-  .panel{padding:18px 20px 8px;display:none;}
-  .panel.active{display:block;}
-  .section-title{font-size:15px;font-weight:600;margin:18px 0 10px;color:var(--text);}
-  .section-title:first-child{margin-top:0;}
+  /* ---------- Section / group cards ---------- */
+  .section-head{display:flex;justify-content:space-between;align-items:baseline;margin:20px 0 10px;}
+  .section-head:first-child{margin-top:0;}
+  .section-title{font-size:15px;font-weight:700;}
+  .link-btn{background:none;border:none;color:var(--jade);font-size:12.5px;font-weight:600;padding:0;}
   .muted{color:var(--muted);font-size:13px;}
 
-  .row{
-    display:flex;justify-content:space-between;align-items:center;gap:10px;
-    padding:12px 0;border-bottom:1px solid var(--line);
+  .group-card{
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:6px 14px;margin-bottom:12px;
   }
-  .row:last-child{border-bottom:none;}
-  .row-main{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;}
-  .row-name{font-size:14.5px;font-weight:500;}
-  .row-note{font-size:12px;color:var(--muted);}
-  .row-amount{font-size:14.5px;font-weight:600;white-space:nowrap;}
-  .row-right{display:flex;align-items:center;gap:8px;flex:0 0 auto;}
+  .group-card-title{font-size:12.5px;font-weight:700;color:var(--muted);padding:12px 0 4px;}
 
-  .badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;white-space:nowrap;}
-  .badge.ok{background:var(--jade-dim);color:#CFEBDA;}
+  .item-row{display:flex;align-items:flex-start;gap:11px;padding:12px 0;border-bottom:1px solid var(--line);}
+  .item-row:last-child{border-bottom:none;}
+  .item-avatar{
+    width:38px;height:38px;border-radius:50%;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:17px;
+    background:var(--panel-2);
+  }
+  .item-avatar.hogar{background:#22301F;}
+  .item-avatar.deudas{background:#332420;}
+  .item-avatar.otros{background:#20242F;}
+  .item-avatar.cobrar{background:#2A2A1E;}
+  .item-main{flex:1;min-width:0;}
+  .item-name{font-size:14.5px;font-weight:600;}
+  .item-note{font-size:12px;color:var(--muted);margin-top:1px;}
+  .item-side{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
+  .item-buttons{display:flex;gap:6px;}
+  .item-payments{margin-top:6px;display:flex;flex-direction:column;gap:4px;}
+  .mini-paid{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:6px;}
+  .mini-paid button{background:none;border:none;color:var(--muted);font-size:11px;padding:0;}
+
+  .badge{font-size:11px;font-weight:700;padding:4px 9px;border-radius:20px;white-space:nowrap;}
+  .badge.ok{background:var(--jade-dim);color:#B9EFCD;}
   .badge.warn{background:var(--mustard-dim);color:#F0DB9E;}
-  .badge.danger{background:var(--brick-dim);color:#F4CFC5;}
+  .badge.danger{background:var(--brick-dim);color:#F9C9BC;}
   .badge.neutral{background:var(--panel-2);color:var(--muted);border:1px solid var(--line);}
 
-  .form{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:10px;}
+  /* ---------- Sub-tabs (Pendientes/Completados) ---------- */
+  .subtabs{display:flex;gap:6px;margin-bottom:16px;}
+  .subtab{flex:1;background:var(--panel);border:1px solid var(--line);color:var(--muted);
+    padding:9px;border-radius:10px;font-size:13px;font-weight:600;}
+  .subtab.active{background:var(--jade-dim);border-color:var(--jade);color:#CFEBDA;}
+
+  /* ---------- Forms ---------- */
+  .form{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:10px;}
   .field{margin-bottom:10px;}
   .field label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:4px;}
   .field input,.field select,.field textarea{
-    width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--text);
-    border-radius:7px;padding:9px 10px;font-size:14px;
+    width:100%;background:var(--bg);border:1px solid var(--line);color:var(--text);
+    border-radius:8px;padding:10px 11px;font-size:14.5px;
   }
   .field textarea{resize:vertical;min-height:44px;}
   .form-actions{display:flex;gap:8px;margin-top:12px;}
   .hidden{display:none !important;}
+  .empty{padding:30px 4px;text-align:center;color:var(--muted);font-size:13.5px;}
 
-  .empty{padding:28px 4px;text-align:center;color:var(--muted);font-size:13.5px;}
+  /* ---------- Mini stat cards ---------- */
+  .stat-row{display:flex;gap:10px;margin-top:6px;}
+  .stat-card{flex:1;border-radius:14px;padding:14px;border:1px solid var(--line);}
+  .stat-card.up{background:linear-gradient(160deg, var(--jade-dim), var(--panel) 70%);}
+  .stat-card.down{background:linear-gradient(160deg, var(--brick-dim), var(--panel) 70%);}
+  .stat-label{font-size:12px;color:var(--muted);}
+  .stat-num{font-family:'Lora',serif;font-size:19px;font-weight:700;margin-top:3px;}
 
-  .hormiga-total{
-    background:var(--panel);border:1px solid var(--line);border-radius:10px;
-    padding:16px;display:flex;justify-content:space-between;align-items:center;
-  }
-  .hormiga-total .num{font-family:'Lora',serif;font-size:26px;font-weight:700;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:12px;}
 
-  .hist-row{border-bottom:1px solid var(--line);}
+  /* ---------- Historial ---------- */
   .hist-head{display:flex;justify-content:space-between;align-items:center;padding:13px 0;font-size:14px;width:100%;background:none;border:none;color:inherit;text-align:left;}
-  .hist-detail{padding:0 0 14px;}
-  .hist-detail .row{padding:8px 0;}
+  .hist-detail{padding:0 0 12px;}
+
+  /* ---------- Cuentas por cobrar ---------- */
+  .debtor-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:12px;}
+  .debtor-top{display:flex;justify-content:space-between;align-items:center;}
+  .debtor-name{font-size:15px;font-weight:700;}
+  .debtor-status{font-size:12px;color:var(--muted);}
+  .debtor-balance{font-family:'Lora',serif;font-size:20px;font-weight:700;}
+
+  /* ---------- Bottom nav ---------- */
+  .bottomnav{
+    position:fixed;bottom:0;left:0;right:0;background:var(--panel);
+    border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:flex-end;
+    padding:8px 4px calc(8px + env(safe-area-inset-bottom));z-index:20;
+    max-width:560px;margin:0 auto;
+  }
+  .navitem{background:none;border:none;color:var(--muted);display:flex;flex-direction:column;
+    align-items:center;gap:3px;font-size:10px;padding:4px 4px;flex:1;font-weight:600;}
+  .navitem.active{color:var(--jade);}
+  .navitem .navicon{font-size:19px;}
+  .navitem.center{margin-top:-24px;}
+  .navitem.center .navicon{
+    width:52px;height:52px;border-radius:50%;background:var(--jade);color:var(--jade-ink);
+    display:flex;align-items:center;justify-content:center;font-size:25px;
+    box-shadow:0 6px 16px rgba(63,184,118,.35);
+  }
+  .navitem.center span:last-child{color:var(--muted);margin-top:3px;}
+
+  /* ---------- Modal (Nube) ---------- */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(6,10,9,.66);display:flex;
+    align-items:flex-end;justify-content:center;z-index:100;
+  }
+  .modal-card{
+    background:var(--panel);border:1px solid var(--line);border-top:none;
+    border-radius:20px 20px 0 0;padding:22px 20px calc(26px + env(safe-area-inset-bottom));
+    width:100%;max-width:560px;max-height:88vh;overflow-y:auto;
+  }
+  @media (min-width:600px){
+    .modal-overlay{align-items:center;}
+    .modal-card{border-radius:20px;border-top:1px solid var(--line);}
+  }
+  .modal-head{display:flex;justify-content:flex-end;}
+  .modal-close{background:none;border:none;color:var(--muted);font-size:18px;padding:2px;}
+  .nube-illustration{font-size:52px;text-align:center;margin:4px 0 14px;}
+  .nube-headline{font-size:19px;text-align:center;margin-bottom:6px;}
+  .nube-sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:20px;}
+  .status-card{
+    background:var(--panel-2);border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;
+  }
+  .info-card{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:14px;}
+  .info-card strong{font-size:13.5px;}
+  .info-card p{margin:6px 0 0;font-size:12.5px;color:var(--muted);}
 
   .toast{
-    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+    position:fixed;bottom:92px;left:50%;transform:translateX(-50%);
     background:var(--panel);border:1px solid var(--line);color:var(--text);
     padding:10px 16px;border-radius:8px;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.4);
-    opacity:0;pointer-events:none;transition:opacity .25s;z-index:50;
+    opacity:0;pointer-events:none;transition:opacity .25s;z-index:150;
   }
   .toast.show{opacity:1;}
-
-  .footer-actions{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);}
-
-  .cloud-dot{width:7px;height:7px;border-radius:50%;background:var(--panel-2);border:1px solid var(--line);display:inline-block;}
-  .cloud-dot.ok{background:var(--jade);border-color:var(--jade);}
-  .cloud-dot.error{background:var(--brick);border-color:var(--brick);}
 </style>
 </head>
 <body>
 <div class="app">
 
-  <div class="hero">
-    <div class="hero-top">
-      <span class="brand">Cuentas Claras</span>
-      <span style="display:flex;align-items:center;gap:6px;">
-        <span class="cloud-dot" id="cloudDot" title="Estado de la nube"></span>
-        <span class="cycle-label" id="cycleLabel">—</span>
-      </span>
-    </div>
-    <div class="saldo-caption">Disponible ahora</div>
-    <div class="saldo-num num" id="saldoNum">$0.00</div>
-    <div class="hero-actions">
-      <button class="btn primary" data-action="open-quick-expense">+ Registrar gasto</button>
-      <button class="btn" data-action="goto-checklist">Marcar un pago</button>
-    </div>
+  <div class="topbar">
+    <span class="brand">Cuentas Claras</span>
+    <button class="cloud-icon-btn" data-action="open-nube-modal">
+      ☁
+      <span class="sync-badge hidden" id="syncBadge">✓</span>
+    </button>
   </div>
 
-  <div class="tabs">
-    <button class="tab active" data-tab="resumen">Resumen</button>
-    <button class="tab" data-tab="checklist">Checklist</button>
-    <button class="tab" data-tab="registrar">Registrar</button>
-    <button class="tab" data-tab="ingresos">Ingresos</button>
-    <button class="tab" data-tab="historial">Historial</button>
-    <button class="tab" data-tab="nube">Nube</button>
-  </div>
+  <!-- RESUMEN -->
+  <div class="screen active" id="screen-resumen">
+    <h2 class="screen-title">Resumen</h2>
 
-  <div class="panel active" id="panel-resumen">
-    <div class="section-title">Próximos vencimientos</div>
-    <div id="pendingList"></div>
-
-    <div class="section-title">Ingresos de este ciclo pendientes de registrar</div>
-    <div id="pendingIncomeList"></div>
-
-    <div class="section-title">Gastos hormiga acumulados este ciclo</div>
-    <div class="hormiga-total">
-      <div class="muted">Comida afuera, delivery, Uber, imprevistos</div>
-      <div class="num" id="hormigaTotal">$0.00</div>
+    <div class="saldo-card">
+      <div class="saldo-caption">Disponible ahora</div>
+      <div class="saldo-num num" id="saldoNum">$0.00</div>
+      <div class="cycle-label" id="cycleLabel">—</div>
+      <div class="saldo-actions">
+        <button class="btn primary" data-action="open-quick-expense">+ Registrar</button>
+        <button class="btn" data-action="goto-checklist">✓ Marcar pago</button>
+      </div>
     </div>
 
-    <div class="section-title">Movimientos recientes</div>
-    <div id="recentList"></div>
-  </div>
-
-  <div class="panel" id="panel-checklist">
-    <div class="section-title">Con fecha de vencimiento</div>
-    <div id="checklistAlert"></div>
-    <div class="section-title">Sin fecha fija (bills mensuales)</div>
-    <div id="checklistNoAlert"></div>
-    <div class="footer-actions">
-      <button class="btn small ghost" data-action="add-item">+ Agregar ítem fijo</button>
+    <div class="section-head">
+      <span class="section-title">Próximos vencimientos</span>
+      <button class="link-btn" data-action="goto-checklist">Ver todos</button>
     </div>
+    <div class="card" id="pendingList" style="padding:6px 16px;"></div>
+
+    <div class="section-head"><span class="section-title">Ingresos pendientes de registrar</span></div>
+    <div class="card" id="pendingIncomeList" style="padding:6px 16px;"></div>
+
+    <div class="stat-row">
+      <div class="stat-card up">
+        <div class="stat-label">Ingresos del ciclo</div>
+        <div class="stat-num num" id="statIncome">$0.00</div>
+      </div>
+      <div class="stat-card down">
+        <div class="stat-label">Egresos del ciclo</div>
+        <div class="stat-num num" id="statExpense">$0.00</div>
+      </div>
+    </div>
+
+    <div class="section-head"><span class="section-title">Gastos hormiga este ciclo</span></div>
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center;">
+      <span class="muted">Comida afuera, delivery, Uber, imprevistos</span>
+      <span class="num" style="font-family:'Lora',serif;font-size:20px;font-weight:700;" id="hormigaTotal">$0.00</span>
+    </div>
+
+    <div class="section-head"><span class="section-title">Actividad reciente</span></div>
+    <div class="card" id="recentList" style="padding:6px 16px;"></div>
   </div>
 
-  <div class="panel" id="panel-registrar">
-    <div class="section-title">Registrar un gasto</div>
+  <!-- CHECKLIST -->
+  <div class="screen" id="screen-checklist">
+    <h2 class="screen-title">Checklist</h2>
+    <div class="subtabs">
+      <button class="subtab active" data-subtab="pendientes">Pendientes</button>
+      <button class="subtab" data-subtab="completados">Completados</button>
+    </div>
+    <div id="checklistGroups"></div>
+    <button class="btn small ghost block" data-action="add-item" style="margin-top:6px;">+ Agregar ítem fijo</button>
+  </div>
+
+  <!-- REGISTRAR -->
+  <div class="screen" id="screen-registrar">
+    <h2 class="screen-title">Registrar gasto</h2>
     <form class="form" id="expenseForm">
       <div class="field">
         <label>Categoría</label>
@@ -231,22 +333,24 @@
         <input type="text" id="expNote" placeholder="Opcional">
       </div>
       <div class="form-actions">
-        <button type="submit" class="btn primary">Registrar gasto</button>
+        <button type="submit" class="btn primary block">Registrar gasto</button>
       </div>
     </form>
 
-    <div class="section-title">Alimentación y transporte — este ciclo</div>
-    <div id="variableSummary"></div>
+    <div class="section-head"><span class="section-title">Alimentación y transporte — este ciclo</span></div>
+    <div class="card" id="variableSummary" style="padding:6px 16px;"></div>
 
-    <div class="section-title">Gastos registrados este ciclo</div>
-    <div id="expenseList"></div>
+    <div class="section-head"><span class="section-title">Gastos registrados este ciclo</span></div>
+    <div class="card" id="expenseList" style="padding:6px 16px;"></div>
   </div>
 
-  <div class="panel" id="panel-ingresos">
-    <div class="section-title">Ingresos esperados</div>
-    <div id="incomeSourceList"></div>
+  <!-- INGRESOS -->
+  <div class="screen" id="screen-ingresos">
+    <h2 class="screen-title">Ingresos</h2>
+    <div class="section-head"><span class="section-title">Ingresos esperados</span></div>
+    <div class="card" id="incomeSourceList" style="padding:6px 16px;"></div>
 
-    <div class="section-title">Otro ingreso</div>
+    <div class="section-head"><span class="section-title">Otro ingreso</span></div>
     <form class="form" id="otherIncomeForm">
       <div class="field">
         <label>Descripción</label>
@@ -261,48 +365,75 @@
         <input type="date" id="incDate" required>
       </div>
       <div class="form-actions">
-        <button type="submit" class="btn">Registrar ingreso</button>
+        <button type="submit" class="btn block">Registrar ingreso</button>
       </div>
     </form>
 
-    <div class="section-title">Ingresos registrados este ciclo</div>
-    <div id="incomeList"></div>
+    <div class="section-head"><span class="section-title">Ingresos registrados este ciclo</span></div>
+    <div class="card" id="incomeList" style="padding:6px 16px;"></div>
 
-    <div class="footer-actions">
-      <div class="section-title" style="margin-top:0;">Nuevo ciclo</div>
-      <p class="muted">Cuando te depositen el sueldo (día 28-31), inicia un nuevo ciclo. El ciclo actual queda guardado en el historial.</p>
-      <button class="btn primary" data-action="open-new-cycle">🟢 Cobré el sueldo — iniciar nuevo ciclo</button>
+    <div class="section-head"><span class="section-title">Nuevo ciclo</span></div>
+    <div class="card">
+      <p class="muted" style="margin:0 0 12px;">Cuando te depositen el sueldo (día 28-31), inicia un nuevo ciclo. El ciclo actual queda guardado en el historial.</p>
+      <button class="btn primary block" data-action="open-new-cycle">🟢 Cobré el sueldo — iniciar nuevo ciclo</button>
     </div>
   </div>
 
-  <div class="panel" id="panel-historial">
-    <div class="section-title">Ciclos anteriores</div>
-    <div id="historialList"></div>
-    <div class="footer-actions">
-      <button class="btn small danger" data-action="reset-all">Borrar todos los datos guardados</button>
-    </div>
+  <!-- HISTORIAL -->
+  <div class="screen" id="screen-historial">
+    <h2 class="screen-title">Historial</h2>
+    <div class="card" id="historialList" style="padding:6px 16px;"></div>
+    <button class="btn small danger block" data-action="reset-all" style="margin-top:16px;">Borrar todos los datos guardados</button>
   </div>
 
-  <div class="panel" id="panel-nube">
-    <div class="section-title">Respaldo en la nube</div>
-    <p class="muted" id="cloudStatusText">Sin conectar. Tus datos solo viven en este celular — si borras el navegador, se pierden.</p>
+  <!-- CUENTAS POR COBRAR -->
+  <div class="screen" id="screen-cobrar">
+    <h2 class="screen-title">Cuentas por cobrar</h2>
+    <p class="muted" style="margin-top:-8px;">Lo que adelantas por otras personas (ej. cargos a tu tarjeta) y lo que te devuelven.</p>
+    <div id="debtorsList"></div>
+    <button class="btn small ghost block" data-action="add-debtor">+ Agregar persona</button>
 
-    <div id="cloudDisconnected">
-      <form class="form" id="cloudForm">
-        <div class="field"><label>URL de tu Apps Script</label><input type="text" id="cloudUrlInput" placeholder="https://script.google.com/macros/s/..."></div>
-        <div class="field"><label>Clave secreta</label><input type="text" id="cloudKeyInput" placeholder="Tu clave"></div>
-        <div class="form-actions"><button type="submit" class="btn primary">Conectar</button></div>
-      </form>
-      <p class="muted" style="margin-top:10px;">¿No tienes esto todavía? Sigue las instrucciones del archivo <strong>CLOUD-SETUP.txt</strong> — toma unos 5 minutos, se hace una sola vez.</p>
-    </div>
+    <div class="section-head"><span class="section-title">Historial de movimientos</span></div>
+    <div class="card" id="receivablesLog" style="padding:6px 16px;"></div>
+  </div>
 
-    <div class="hidden" id="cloudConnected">
-      <div class="row"><div class="row-main"><div class="row-name">Estado</div><div class="row-note" id="cloudStatusDetail">—</div></div></div>
-      <div class="form-actions" style="margin-top:10px;">
-        <button class="btn small" data-action="sync-now">🔄 Sincronizar ahora</button>
-        <button class="btn small ghost" data-action="disconnect-cloud">Desconectar</button>
+  <div class="bottomnav">
+    <button class="navitem active" data-screen="resumen"><span class="navicon">🏠</span><span>Resumen</span></button>
+    <button class="navitem" data-screen="checklist"><span class="navicon">✅</span><span>Checklist</span></button>
+    <button class="navitem center" data-screen="registrar"><span class="navicon">➕</span><span>Registrar</span></button>
+    <button class="navitem" data-screen="ingresos"><span class="navicon">💰</span><span>Ingresos</span></button>
+    <button class="navitem" data-screen="historial"><span class="navicon">📋</span><span>Historial</span></button>
+    <button class="navitem" data-screen="cobrar"><span class="navicon">🤝</span><span>Por cobrar</span></button>
+  </div>
+
+  <div class="modal-overlay hidden" id="nubeModal" data-action="close-nube-modal-backdrop">
+    <div class="modal-card" id="nubeModalCard">
+      <div class="modal-head"><button class="modal-close" data-action="close-nube-modal">✕</button></div>
+      <div class="nube-illustration">☁️</div>
+      <div class="nube-headline">Tus datos están seguros</div>
+      <div class="nube-sub">Sincroniza tu información en la nube y recupérala aunque borres el navegador.</div>
+
+      <div id="cloudDisconnected">
+        <form class="form" id="cloudForm">
+          <div class="field"><label>URL de tu Apps Script</label><input type="text" id="cloudUrlInput" placeholder="https://script.google.com/macros/s/..."></div>
+          <div class="field"><label>Clave secreta</label><input type="text" id="cloudKeyInput" placeholder="Tu clave"></div>
+          <div class="form-actions"><button type="submit" class="btn primary block">Conectar</button></div>
+        </form>
+        <p class="muted" style="margin-top:10px;">¿No tienes esto todavía? Sigue las instrucciones del archivo <strong>CLOUD-SETUP.txt</strong> — toma unos 5 minutos, una sola vez.</p>
       </div>
-      <p class="muted" style="margin-top:10px;">Guarda tu URL y clave en un lugar seguro (notas del celular) — si borras el navegador, necesitas volver a pegarlas aquí para recuperar tus datos.</p>
+
+      <div class="hidden" id="cloudConnected">
+        <div class="status-card">
+          <span class="muted">Estado de sincronización</span>
+          <strong id="cloudStatusDetail">—</strong>
+        </div>
+        <button class="btn primary block" data-action="sync-now">🔄 Sincronizar ahora</button>
+        <button class="btn block ghost" data-action="disconnect-cloud" style="margin-top:8px;">Desconectar</button>
+        <div class="info-card">
+          <strong>¿Cómo funciona?</strong>
+          <p>Guarda tu URL y clave en un lugar seguro (notas del celular). Si borras el navegador, pégalas de nuevo aquí para recuperar todo tu historial.</p>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -339,7 +470,22 @@ const CATEGORY_LABELS = {
 const HORMIGA_CATS = ['comida_afuera','delivery','uber','imprevisto','otro'];
 const CONFIG_VERSION = 2;
 
-let CONFIG, CURRENT_CYCLE, CYCLES_INDEX, historyCache = {};
+const ITEM_ICONS = {
+  prestamo1:'🏦', prestamo2:'🏦', arriendo:'🏠', colegiatura:'🎓', ayuda_mama:'👵',
+  visa:'💳', discover:'💳', celular:'📱', luz:'⚡', agua:'💧'
+};
+const ITEM_GROUPS = {
+  arriendo:'hogar', luz:'hogar', agua:'hogar', celular:'hogar',
+  prestamo1:'deudas', prestamo2:'deudas', visa:'deudas', discover:'deudas',
+  colegiatura:'otros', ayuda_mama:'otros'
+};
+const GROUP_LABELS = {hogar:'Pagos del hogar', deudas:'Deudas y tarjetas', otros:'Otros compromisos'};
+const GROUP_ORDER = ['hogar','deudas','otros'];
+function itemIcon(item){ return ITEM_ICONS[item.id] || '💵'; }
+function itemGroup(item){ return ITEM_GROUPS[item.id] || 'otros'; }
+
+let CONFIG, CURRENT_CYCLE, CYCLES_INDEX, RECEIVABLES, historyCache = {};
+let CHECKLIST_FILTER = 'pendientes';
 
 function todayISO(){ const d=new Date(); return d.toISOString().slice(0,10); }
 function fmtDate(iso){ if(!iso) return ''; const [y,m,d]=iso.split('-'); return `${d}/${m}`; }
@@ -372,6 +518,8 @@ async function loadCyclesIndex(){ const v = await storageGet('presupuesto:cycles
 async function saveCyclesIndex(idx){ await storageSet('presupuesto:cycles-index', JSON.stringify(idx)); }
 async function loadCurrentId(){ return await storageGet('presupuesto:currentCycleId'); }
 async function saveCurrentId(id){ await storageSet('presupuesto:currentCycleId', id); }
+async function loadReceivables(){ const v = await storageGet('presupuesto:receivables'); return v ? JSON.parse(v) : null; }
+async function saveReceivables(r){ await storageSet('presupuesto:receivables', JSON.stringify(r)); }
 
 // ---------- nube (respaldo vía Google Sheets + Apps Script) ----------
 let cloudUrl = '';
@@ -386,8 +534,6 @@ async function cloudFetch(method, data){
   if(method === 'GET'){
     resp = await fetch(url);
   } else {
-    // Content-Type text/plain a propósito: evita el preflight CORS que
-    // Google Apps Script no maneja bien con application/json.
     resp = await fetch(url, {
       method:'POST',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
@@ -399,15 +545,12 @@ async function cloudFetch(method, data){
   if(!json.ok) throw new Error(json.error || 'Error de la nube');
   return json;
 }
-
 function snapshotAll(){
   const snap = {};
   Object.keys(localStorage).filter(k=>k.startsWith('presupuesto:')).forEach(k=>{ snap[k]=localStorage.getItem(k); });
   return snap;
 }
-function applySnapshot(snap){
-  Object.keys(snap).forEach(k=> localStorage.setItem(k, snap[k]));
-}
+function applySnapshot(snap){ Object.keys(snap).forEach(k=> localStorage.setItem(k, snap[k])); }
 
 async function guardarEnNube(){ await cloudFetch('POST', snapshotAll()); }
 async function cargarDesdeNube(){
@@ -416,7 +559,6 @@ async function cargarDesdeNube(){
   if(hadData) applySnapshot(json.data);
   return hadData;
 }
-
 function scheduleCloudPush(){
   if(!cloudUrl || !cloudKey) return;
   clearTimeout(cloudPushTimer);
@@ -426,7 +568,6 @@ function scheduleCloudPush(){
     renderNube();
   }, 1200);
 }
-
 async function conectarNube(url, key){
   const urlAnterior=cloudUrl, keyAnterior=cloudKey;
   cloudUrl = url.trim(); cloudKey = key.trim();
@@ -438,6 +579,7 @@ async function conectarNube(url, key){
     cloudStatus = 'ok';
     await loadStateFromStorage();
     renderAll();
+    closeNubeModal();
     showToast('Conectado a la nube');
     return true;
   }catch(e){
@@ -472,6 +614,7 @@ async function sincronizarAhora(){
   renderNube();
 }
 
+// ---------- estado / init ----------
 async function loadStateFromStorage(){
   CONFIG = await loadConfig();
   if(!CONFIG){
@@ -508,6 +651,13 @@ async function loadStateFromStorage(){
     CURRENT_CYCLE = {id:curId, startDate:curId, incomeEntries:[], expenseEntries:[], checklistState:{}};
     await saveCycle(CURRENT_CYCLE);
   }
+
+  RECEIVABLES = await loadReceivables();
+  if(!RECEIVABLES){
+    RECEIVABLES = {debtors:[{id:'mama', name:'Mamá'}], entries:[]};
+    await saveReceivables(RECEIVABLES);
+  }
+
   historyCache = {};
 }
 
@@ -530,7 +680,7 @@ async function init(){
   }
 }
 
-// ---------- mutations ----------
+// ---------- mutaciones: checklist / gastos / ingresos ----------
 async function payItem(itemId, amount, date, note){
   const item = CONFIG.items.find(i=>i.id===itemId);
   const entry = {id:uid(), itemId, name:item.name, amount:Number(amount), date, category:'fijo', note:note||''};
@@ -614,22 +764,44 @@ async function addConfigItem(name, amount, dueDay, recurrence){
   renderAll();
 }
 async function resetAll(){
-  if(cloudUrl && cloudKey){
-    try{ await cloudFetch('POST', {}); }catch(e){}
-  }
+  if(cloudUrl && cloudKey){ try{ await cloudFetch('POST', {}); }catch(e){} }
   Object.keys(localStorage).forEach(k=>{
     if(k.startsWith('presupuesto:') || k==='cc_cloud_url' || k==='cc_cloud_key') localStorage.removeItem(k);
   });
   location.reload();
 }
 
-// ---------- due status ----------
-function nextDueAfter(fromDate, dueDay){
-  const d = new Date(fromDate); d.setHours(0,0,0,0);
-  let candidate = new Date(d.getFullYear(), d.getMonth(), dueDay);
-  if(candidate <= d) candidate = new Date(d.getFullYear(), d.getMonth()+1, dueDay);
-  return candidate;
+// ---------- mutaciones: cuentas por cobrar ----------
+function receivablesBalance(debtorId){
+  const entries = RECEIVABLES.entries.filter(e=>e.debtorId===debtorId);
+  return sum(entries.filter(e=>e.type==='cargo')) - sum(entries.filter(e=>e.type==='pago'));
 }
+async function addCargo(debtorId, amount, date, note){
+  RECEIVABLES.entries.push({id:uid(), debtorId, type:'cargo', amount:Number(amount), date, note:note||''});
+  await saveReceivables(RECEIVABLES);
+  showToast('Cargo registrado');
+  renderAll();
+}
+async function addPago(debtorId, amount, date){
+  const debtor = RECEIVABLES.debtors.find(d=>d.id===debtorId);
+  RECEIVABLES.entries.push({id:uid(), debtorId, type:'pago', amount:Number(amount), date, note:''});
+  await saveReceivables(RECEIVABLES);
+  // el reembolso es dinero real: se registra también como ingreso del ciclo actual
+  await addIncome(`Reembolso ${debtor.name}`, amount, date, null);
+  renderAll();
+}
+async function removeReceivable(id){
+  RECEIVABLES.entries = RECEIVABLES.entries.filter(e=>e.id!==id);
+  await saveReceivables(RECEIVABLES);
+  renderAll();
+}
+async function addDebtor(name){
+  RECEIVABLES.debtors.push({id:uid(), name});
+  await saveReceivables(RECEIVABLES);
+  renderAll();
+}
+
+// ---------- estado de vencimientos ----------
 function daysBetween(a,b){ return Math.round((b-a)/86400000); }
 
 function singleStatus(item){
@@ -670,12 +842,28 @@ function monthlyStatus(item){
   return {label:`Vence el ${due.getDate()}/${due.getMonth()+1}`, cls:'neutral'};
 }
 function dueStatus(item){ return item.recurrence==='monthly' ? monthlyStatus(item) : singleStatus(item); }
-
 function isPending(item){
   const st = dueStatus(item);
   if(item.recurrence === 'single') return st.cls !== 'ok';
   return st.cls === 'danger' || st.cls === 'warn';
 }
+function isPaidThisCycle(item){
+  if(item.recurrence==='single') return !!(CURRENT_CYCLE.checklistState[item.id]||{}).paid;
+  if(item.recurrence==='monthly') return CURRENT_CYCLE.expenseEntries.some(e=>e.itemId===item.id);
+  return false;
+}
+
+// ---------- navegación ----------
+function showScreen(name){
+  document.querySelectorAll('.navitem').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  const nav = document.querySelector('.navitem[data-screen="'+name+'"]');
+  if(nav) nav.classList.add('active');
+  const screen = document.getElementById('screen-'+name);
+  if(screen) screen.classList.add('active');
+}
+function openNubeModal(){ document.getElementById('nubeModal').classList.remove('hidden'); }
+function closeNubeModal(){ document.getElementById('nubeModal').classList.add('hidden'); }
 
 // ---------- render ----------
 function cycleLabel(c){
@@ -688,30 +876,15 @@ function renderAll(){
   const saldo = saldoActual(CURRENT_CYCLE);
   const saldoEl = document.getElementById('saldoNum');
   saldoEl.textContent = fmt.format(saldo);
-  saldoEl.className = 'saldo-num num ' + (saldo<0?'neg':'pos');
+  saldoEl.className = 'saldo-num num ' + (saldo<0?'neg':'');
 
   renderResumen();
   renderChecklist();
   renderRegistrar();
   renderIngresos();
   renderHistorial();
+  renderCobrar();
   renderNube();
-}
-
-function renderNube(){
-  const connected = !!(cloudUrl && cloudKey);
-  const dc = document.getElementById('cloudDisconnected');
-  const cc = document.getElementById('cloudConnected');
-  if(!dc || !cc) return;
-  dc.classList.toggle('hidden', connected);
-  cc.classList.toggle('hidden', !connected);
-  document.getElementById('cloudStatusText').textContent = connected
-    ? 'Tus datos se respaldan automáticamente en la nube.'
-    : 'Sin conectar. Tus datos solo viven en este celular — si borras el navegador, se pierden.';
-  const statusMap = {ok:'✅ Sincronizado', error:'⚠️ Error al sincronizar (revisa tu conexión a internet)', idle:'Conectado'};
-  if(connected) document.getElementById('cloudStatusDetail').textContent = statusMap[cloudStatus] || '';
-  const dot = document.getElementById('cloudDot');
-  if(dot) dot.className = 'cloud-dot ' + (connected ? cloudStatus : '');
 }
 
 function renderResumen(){
@@ -719,20 +892,25 @@ function renderResumen(){
   const pending = alertItems.filter(isPending);
   const order = {danger:0, warn:1, neutral:2, ok:3};
   pending.sort((a,b)=>order[dueStatus(a).cls]-order[dueStatus(b).cls]);
-  document.getElementById('pendingList').innerHTML = pending.length ? pending.map(i=>{
+  document.getElementById('pendingList').innerHTML = pending.length ? pending.slice(0,6).map(i=>{
     const st = dueStatus(i);
-    return `<div class="row">
-      <div class="row-main"><div class="row-name">${i.name}</div><div class="row-note">${i.amount!=null?fmt.format(i.amount):'Monto variable'}</div></div>
-      <div class="row-right"><span class="badge ${st.cls}">${st.label}</span></div>
+    return `<div class="item-row">
+      <div class="item-avatar ${itemGroup(i)}">${itemIcon(i)}</div>
+      <div class="item-main"><div class="item-name">${i.name}</div><div class="item-note">${i.amount!=null?fmt.format(i.amount):'Monto variable'}</div></div>
+      <div class="item-side"><span class="badge ${st.cls}">${st.label}</span></div>
     </div>`;
-  }).join('') : `<div class="empty">No tienes pagos fijos pendientes.</div>`;
+  }).join('') : `<div class="empty">No tienes pagos fijos pendientes 🎉</div>`;
 
   const pendingIncome = CONFIG.incomeSources.filter(s=>!CURRENT_CYCLE.incomeEntries.some(e=>e.sourceId===s.id));
   document.getElementById('pendingIncomeList').innerHTML = pendingIncome.length ? pendingIncome.map(s=>`
-    <div class="row">
-      <div class="row-main"><div class="row-name">${s.name}</div><div class="row-note">${s.note}</div></div>
-      <div class="row-right"><span class="row-amount num">${fmt.format(s.amount)}</span></div>
-    </div>`).join('') : `<div class="empty">Ya registraste todos los ingresos esperados de este ciclo.</div>`;
+    <div class="item-row">
+      <div class="item-avatar otros">💵</div>
+      <div class="item-main"><div class="item-name">${s.name}</div><div class="item-note">${s.note}</div></div>
+      <div class="item-side"><span class="row-amount num">${fmt.format(s.amount)}</span></div>
+    </div>`).join('') : `<div class="empty">Ya registraste todos los ingresos esperados.</div>`;
+
+  document.getElementById('statIncome').textContent = fmt.format(totalIngresos(CURRENT_CYCLE));
+  document.getElementById('statExpense').textContent = fmt.format(totalEgresos(CURRENT_CYCLE));
 
   const hormiga = CURRENT_CYCLE.expenseEntries.filter(e=>HORMIGA_CATS.includes(e.category));
   document.getElementById('hormigaTotal').textContent = fmt.format(sum(hormiga));
@@ -740,9 +918,10 @@ function renderResumen(){
   const recent = [...CURRENT_CYCLE.expenseEntries.map(e=>({...e,kind:'egreso'})), ...CURRENT_CYCLE.incomeEntries.map(e=>({...e,kind:'ingreso'}))]
     .sort((a,b)=> b.date.localeCompare(a.date)).slice(0,6);
   document.getElementById('recentList').innerHTML = recent.length ? recent.map(e=>`
-    <div class="row">
-      <div class="row-main"><div class="row-name">${e.name}</div><div class="row-note">${fmtDate(e.date)}</div></div>
-      <div class="row-right"><span class="row-amount num" style="color:${e.kind==='ingreso'?'var(--jade)':'var(--text)'}">${e.kind==='ingreso'?'+':'−'}${fmt.format(e.amount)}</span></div>
+    <div class="item-row">
+      <div class="item-avatar ${e.kind==='ingreso'?'hogar':'otros'}">${e.kind==='ingreso'?'💵':'🧾'}</div>
+      <div class="item-main"><div class="item-name">${e.name}</div><div class="item-note">${fmtDate(e.date)}</div></div>
+      <div class="item-side"><span class="row-amount num" style="color:${e.kind==='ingreso'?'var(--jade)':'var(--text)'};font-weight:700;">${e.kind==='ingreso'?'+':'−'}${fmt.format(e.amount)}</span></div>
     </div>`).join('') : `<div class="empty">Aún no hay movimientos en este ciclo.</div>`;
 }
 
@@ -760,38 +939,45 @@ function payFormHTML(item){
 
 function checklistRow(item){
   const st = dueStatus(item);
+  const group = itemGroup(item);
+  const icon = itemIcon(item);
   if(item.recurrence === 'monthly'){
     const payments = CURRENT_CYCLE.expenseEntries.filter(e=>e.itemId===item.id).sort((a,b)=>b.date.localeCompare(a.date));
     return `<div>
-      <div class="row">
-        <div class="row-main"><div class="row-name">${item.name}</div><div class="row-note">${item.note}</div></div>
-        <div class="row-right">
+      <div class="item-row">
+        <div class="item-avatar ${group}">${icon}</div>
+        <div class="item-main">
+          <div class="item-name">${item.name}</div>
+          <div class="item-note">${item.note}</div>
+          ${payments.length ? `<div class="item-payments">${payments.map(p=>`<span class="mini-paid">Pagado ${fmtDate(p.date)} · ${fmt.format(p.amount)} <button data-action="delete-expense" data-id="${p.id}">✕</button></span>`).join('')}</div>` : ''}
+        </div>
+        <div class="item-side">
           <span class="badge ${st.cls}">${st.label}</span>
-          <button class="btn small ghost" data-action="edit-card-dates" data-id="${item.id}">✎</button>
-          <button class="btn small" data-action="toggle-payform" data-id="${item.id}">Registrar pago</button>
+          <div class="item-buttons">
+            <button class="icon-btn" data-action="edit-card-dates" data-id="${item.id}">✎</button>
+            <button class="btn small" data-action="toggle-payform" data-id="${item.id}">Registrar</button>
+          </div>
         </div>
       </div>
       <div class="hidden" id="payform-wrap-${item.id}"></div>
-      ${payments.map(p=>`<div class="row" style="padding-left:6px;">
-        <div class="row-main"><div class="row-note">Pagado ${fmtDate(p.date)}</div></div>
-        <div class="row-right"><span class="row-amount num">${fmt.format(p.amount)}</span>
-        <button class="btn small ghost" data-action="delete-expense" data-id="${p.id}">✕</button></div>
-      </div>`).join('')}
     </div>`;
   }
   const paid = (CURRENT_CYCLE.checklistState[item.id]||{}).paid;
   return `<div>
-    <div class="row">
-      <div class="row-main">
-        <div class="row-name">${item.name}</div>
-        <div class="row-note">${item.amount!=null?fmt.format(item.amount)+' esperado · ':''}${item.note}</div>
+    <div class="item-row">
+      <div class="item-avatar ${group}">${icon}</div>
+      <div class="item-main">
+        <div class="item-name">${item.name}</div>
+        <div class="item-note">${item.amount!=null?fmt.format(item.amount)+' · ':''}${item.note}</div>
       </div>
-      <div class="row-right">
+      <div class="item-side">
         <span class="badge ${st.cls}">${st.label}</span>
-        ${item.alert ? `<button class="btn small ghost" data-action="edit-duedate" data-id="${item.id}">✎</button>` : ''}
-        ${paid
-          ? `<button class="btn small ghost" data-action="undo-pay" data-id="${item.id}">Deshacer</button>`
-          : `<button class="btn small" data-action="toggle-payform" data-id="${item.id}">Marcar pagado</button>`}
+        <div class="item-buttons">
+          ${item.alert ? `<button class="icon-btn" data-action="edit-duedate" data-id="${item.id}">✎</button>` : ''}
+          ${paid
+            ? `<button class="btn small ghost" data-action="undo-pay" data-id="${item.id}">Deshacer</button>`
+            : `<button class="btn small" data-action="toggle-payform" data-id="${item.id}">Marcar</button>`}
+        </div>
       </div>
     </div>
     <div class="hidden" id="payform-wrap-${item.id}"></div>
@@ -799,10 +985,21 @@ function checklistRow(item){
 }
 
 function renderChecklist(){
-  const alertItems = CONFIG.items.filter(i=>i.alert);
-  const noAlertItems = CONFIG.items.filter(i=>!i.alert);
-  document.getElementById('checklistAlert').innerHTML = alertItems.map(checklistRow).join('') || `<div class="empty">Nada aquí todavía.</div>`;
-  document.getElementById('checklistNoAlert').innerHTML = noAlertItems.map(checklistRow).join('') || `<div class="empty">Nada aquí todavía.</div>`;
+  document.querySelectorAll('.subtab').forEach(s=>s.classList.toggle('active', s.dataset.subtab===CHECKLIST_FILTER));
+  const groups = {};
+  CONFIG.items.forEach(item=>{
+    const paid = isPaidThisCycle(item);
+    if(CHECKLIST_FILTER==='pendientes' && paid) return;
+    if(CHECKLIST_FILTER==='completados' && !paid) return;
+    const g = itemGroup(item);
+    (groups[g] = groups[g]||[]).push(item);
+  });
+  let html = '';
+  GROUP_ORDER.forEach(g=>{
+    if(!groups[g] || !groups[g].length) return;
+    html += `<div class="group-card"><div class="group-card-title">${GROUP_LABELS[g]}</div>${groups[g].map(checklistRow).join('')}</div>`;
+  });
+  document.getElementById('checklistGroups').innerHTML = html || `<div class="empty">${CHECKLIST_FILTER==='pendientes' ? 'No tienes pagos pendientes 🎉' : 'Aún no has marcado nada como pagado.'}</div>`;
 }
 
 function renderRegistrar(){
@@ -810,17 +1007,19 @@ function renderRegistrar(){
   const refs = {alimentacion:'referencia habitual: $150–200', transporte:'referencia habitual: $24–28'};
   document.getElementById('variableSummary').innerHTML = ['alimentacion','transporte'].map(cat=>{
     const total = sum(CURRENT_CYCLE.expenseEntries.filter(e=>e.category===cat));
-    return `<div class="row">
-      <div class="row-main"><div class="row-name">${CATEGORY_LABELS[cat]}</div><div class="row-note">${refs[cat]}</div></div>
-      <div class="row-right"><span class="row-amount num">${fmt.format(total)}</span></div>
+    return `<div class="item-row">
+      <div class="item-avatar hogar">${cat==='alimentacion'?'🍔':'🚗'}</div>
+      <div class="item-main"><div class="item-name">${CATEGORY_LABELS[cat]}</div><div class="item-note">${refs[cat]}</div></div>
+      <div class="item-side"><span class="row-amount num">${fmt.format(total)}</span></div>
     </div>`;
   }).join('');
 
   const list = [...CURRENT_CYCLE.expenseEntries].filter(e=>!e.itemId).sort((a,b)=>b.date.localeCompare(a.date));
   document.getElementById('expenseList').innerHTML = list.length ? list.map(e=>`
-    <div class="row">
-      <div class="row-main"><div class="row-name">${e.name}</div><div class="row-note">${CATEGORY_LABELS[e.category]||''} · ${fmtDate(e.date)}${e.note?' · '+e.note:''}</div></div>
-      <div class="row-right">
+    <div class="item-row">
+      <div class="item-avatar otros">🧾</div>
+      <div class="item-main"><div class="item-name">${e.name}</div><div class="item-note">${CATEGORY_LABELS[e.category]||''} · ${fmtDate(e.date)}${e.note?' · '+e.note:''}</div></div>
+      <div class="item-side">
         <span class="row-amount num">${fmt.format(e.amount)}</span>
         <button class="btn small ghost" data-action="delete-expense" data-id="${e.id}">✕</button>
       </div>
@@ -831,11 +1030,12 @@ function renderIngresos(){
   document.getElementById('incomeSourceList').innerHTML = CONFIG.incomeSources.map(s=>{
     const already = CURRENT_CYCLE.incomeEntries.some(e=>e.sourceId===s.id);
     return `<div>
-      <div class="row">
-        <div class="row-main"><div class="row-name">${s.name}</div><div class="row-note">${s.note}</div></div>
-        <div class="row-right">
+      <div class="item-row">
+        <div class="item-avatar hogar">💵</div>
+        <div class="item-main"><div class="item-name">${s.name}</div><div class="item-note">${s.note}</div></div>
+        <div class="item-side">
           <span class="row-amount num">${fmt.format(s.amount)}</span>
-          <button class="btn small ${already?'ghost':''}" data-action="toggle-incform" data-id="${s.id}">${already?'Registrar otro':'Registrar'}</button>
+          <button class="btn small ${already?'ghost':''}" data-action="toggle-incform" data-id="${s.id}">${already?'Otro':'Registrar'}</button>
         </div>
       </div>
       <div class="hidden" id="incform-wrap-${s.id}"></div>
@@ -846,9 +1046,10 @@ function renderIngresos(){
 
   const list = [...CURRENT_CYCLE.incomeEntries].sort((a,b)=>b.date.localeCompare(a.date));
   document.getElementById('incomeList').innerHTML = list.length ? list.map(e=>`
-    <div class="row">
-      <div class="row-main"><div class="row-name">${e.name}</div><div class="row-note">${fmtDate(e.date)}</div></div>
-      <div class="row-right">
+    <div class="item-row">
+      <div class="item-avatar hogar">💵</div>
+      <div class="item-main"><div class="item-name">${e.name}</div><div class="item-note">${fmtDate(e.date)}</div></div>
+      <div class="item-side">
         <span class="row-amount num">${fmt.format(e.amount)}</span>
         <button class="btn small ghost" data-action="delete-income" data-id="${e.id}">✕</button>
       </div>
@@ -865,29 +1066,101 @@ async function renderHistorial(){
     const c = historyCache[id];
     if(!c) continue;
     const ing = totalIngresos(c), egr = totalEgresos(c), saldo = ing-egr;
-    html += `<div class="hist-row">
+    html += `<div>
       <button class="hist-head" data-action="toggle-hist" data-id="${id}">
         <span>${cycleLabel(c)}</span>
-        <span class="num" style="color:${saldo<0?'var(--brick)':'var(--jade)'}">${fmt.format(saldo)}</span>
+        <span class="num" style="color:${saldo<0?'var(--brick)':'var(--jade)'};font-weight:700;">${fmt.format(saldo)}</span>
       </button>
       <div class="hist-detail hidden" id="hist-detail-${id}">
-        <div class="row"><span class="muted">Ingresos</span><span class="num">${fmt.format(ing)}</span></div>
-        <div class="row"><span class="muted">Egresos</span><span class="num">${fmt.format(egr)}</span></div>
+        <div class="item-row"><span class="muted">Ingresos</span><span class="num" style="margin-left:auto;">${fmt.format(ing)}</span></div>
+        <div class="item-row"><span class="muted">Egresos</span><span class="num" style="margin-left:auto;">${fmt.format(egr)}</span></div>
       </div>
     </div>`;
   }
   container.innerHTML = html;
 }
 
-// ---------- events ----------
+function cargoFormHTML(debtorId){
+  return `<div class="form">
+    <div class="field"><label>¿Qué fue?</label><input type="text" id="cargo-note-${debtorId}" placeholder="Ej: Internet agosto"></div>
+    <div class="field"><label>Monto</label><input type="number" step="0.01" min="0" id="cargo-amt-${debtorId}"></div>
+    <div class="field"><label>Fecha</label><input type="date" id="cargo-date-${debtorId}" value="${todayISO()}"></div>
+    <div class="form-actions">
+      <button class="btn primary small" data-action="confirm-cargo" data-id="${debtorId}">Guardar</button>
+      <button class="btn ghost small" data-action="cancel-cargo" data-id="${debtorId}">Cancelar</button>
+    </div>
+  </div>`;
+}
+function pagoFormHTML(debtorId){
+  return `<div class="form">
+    <div class="field"><label>Monto recibido</label><input type="number" step="0.01" min="0" id="pago-amt-${debtorId}"></div>
+    <div class="field"><label>Fecha</label><input type="date" id="pago-date-${debtorId}" value="${todayISO()}"></div>
+    <div class="form-actions">
+      <button class="btn primary small" data-action="confirm-pago" data-id="${debtorId}">Guardar (se registra también como ingreso)</button>
+      <button class="btn ghost small" data-action="cancel-pago" data-id="${debtorId}">Cancelar</button>
+    </div>
+  </div>`;
+}
+function renderCobrar(){
+  if(!RECEIVABLES) return;
+  document.getElementById('debtorsList').innerHTML = RECEIVABLES.debtors.map(d=>{
+    const bal = receivablesBalance(d.id);
+    return `<div class="debtor-card">
+      <div class="debtor-top">
+        <div>
+          <div class="debtor-name">${d.name}</div>
+          <div class="debtor-status">${bal>0.004?'te debe':'al día'}</div>
+        </div>
+        <div class="debtor-balance num" style="color:${bal>0.004?'var(--mustard)':'var(--jade)'};">${fmt.format(bal)}</div>
+      </div>
+      <div class="form-actions" style="margin-top:10px;">
+        <button class="btn small ghost" data-action="toggle-cargo-form" data-id="${d.id}">+ Cargo</button>
+        <button class="btn small" data-action="toggle-pago-form" data-id="${d.id}">+ Pago recibido</button>
+      </div>
+      <div class="hidden" id="cargoform-wrap-${d.id}"></div>
+      <div class="hidden" id="pagoform-wrap-${d.id}"></div>
+    </div>`;
+  }).join('');
+
+  const log = [...RECEIVABLES.entries].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,25);
+  document.getElementById('receivablesLog').innerHTML = log.length ? log.map(e=>{
+    const d = RECEIVABLES.debtors.find(x=>x.id===e.debtorId);
+    return `<div class="item-row">
+      <div class="item-avatar cobrar">${e.type==='cargo'?'🧾':'💵'}</div>
+      <div class="item-main"><div class="item-name">${d?d.name:'—'} · ${e.type==='cargo'?'Cargo':'Pago recibido'}</div><div class="item-note">${fmtDate(e.date)}${e.note?' · '+e.note:''}</div></div>
+      <div class="item-side">
+        <span class="row-amount num">${fmt.format(e.amount)}</span>
+        <button class="btn small ghost" data-action="delete-receivable" data-id="${e.id}">✕</button>
+      </div>
+    </div>`;
+  }).join('') : `<div class="empty">Aún no hay movimientos.</div>`;
+}
+
+function renderNube(){
+  const connected = !!(cloudUrl && cloudKey);
+  const dc = document.getElementById('cloudDisconnected');
+  const cc = document.getElementById('cloudConnected');
+  if(dc) dc.classList.toggle('hidden', connected);
+  if(cc) cc.classList.toggle('hidden', !connected);
+  const detailMap = {ok:'✅ Sincronizado', error:'⚠️ Error al sincronizar', idle:'Conectado'};
+  const detail = document.getElementById('cloudStatusDetail');
+  if(connected && detail) detail.textContent = detailMap[cloudStatus] || '';
+
+  const badge = document.getElementById('syncBadge');
+  if(badge){
+    badge.classList.toggle('hidden', !connected);
+    badge.classList.toggle('error', cloudStatus==='error');
+    badge.textContent = cloudStatus==='error' ? '!' : '✓';
+  }
+}
+
+// ---------- eventos ----------
 function bindStaticEvents(){
-  document.querySelectorAll('.tab').forEach(t=>{
-    t.addEventListener('click', ()=>{
-      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-      document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
-      t.classList.add('active');
-      document.getElementById('panel-'+t.dataset.tab).classList.add('active');
-    });
+  document.querySelectorAll('.navitem').forEach(t=>{
+    t.addEventListener('click', ()=> showScreen(t.dataset.screen));
+  });
+  document.querySelectorAll('.subtab').forEach(s=>{
+    s.addEventListener('click', ()=>{ CHECKLIST_FILTER = s.dataset.subtab; renderChecklist(); });
   });
 
   document.getElementById('expCategory').addEventListener('change', e=>{
@@ -927,13 +1200,23 @@ function bindStaticEvents(){
     await conectarNube(url, key);
   });
 
+  document.getElementById('nubeModal').addEventListener('click', e=>{
+    if(e.target.id==='nubeModal') closeNubeModal();
+  });
+
   document.body.addEventListener('click', e=>{
     const btn = e.target.closest('[data-action]');
     if(!btn) return;
     const action = btn.dataset.action;
     const id = btn.dataset.id;
 
-    if(action==='toggle-payform'){
+    if(action==='open-nube-modal'){ openNubeModal(); }
+    else if(action==='close-nube-modal'){ closeNubeModal(); }
+    else if(action==='sync-now'){ sincronizarAhora(); }
+    else if(action==='disconnect-cloud'){
+      if(confirm('¿Desconectar de la nube? Tus datos seguirán en este celular, pero dejarán de respaldarse automáticamente.')) desconectarNube();
+    }
+    else if(action==='toggle-payform'){
       const wrap = document.getElementById('payform-wrap-'+id);
       const item = CONFIG.items.find(i=>i.id===id);
       wrap.innerHTML = payFormHTML(item);
@@ -973,8 +1256,8 @@ function bindStaticEvents(){
     }
     else if(action==='cancel-incform'){ document.getElementById('incform-wrap-'+id).classList.add('hidden'); }
     else if(action==='toggle-hist'){ document.getElementById('hist-detail-'+id).classList.toggle('hidden'); }
-    else if(action==='goto-checklist'){ document.querySelector('.tab[data-tab="checklist"]').click(); }
-    else if(action==='open-quick-expense'){ document.querySelector('.tab[data-tab="registrar"]').click(); document.getElementById('expAmount').focus(); }
+    else if(action==='goto-checklist'){ showScreen('checklist'); }
+    else if(action==='open-quick-expense'){ showScreen('registrar'); document.getElementById('expAmount').focus(); }
     else if(action==='open-new-cycle'){
       const amt = prompt('¿Cuánto te depositaron de sueldo?', '1440.43');
       if(amt===null) return;
@@ -1006,9 +1289,36 @@ function bindStaticEvents(){
       item.graceDays = grace!=='' ? Number(grace) : null;
       saveConfig(CONFIG).then(renderAll);
     }
-    else if(action==='sync-now'){ sincronizarAhora(); }
-    else if(action==='disconnect-cloud'){
-      if(confirm('¿Desconectar de la nube? Tus datos seguirán en este celular, pero dejarán de respaldarse automáticamente.')) desconectarNube();
+    else if(action==='toggle-cargo-form'){
+      const wrap = document.getElementById('cargoform-wrap-'+id);
+      wrap.innerHTML = cargoFormHTML(id);
+      wrap.classList.remove('hidden');
+    }
+    else if(action==='confirm-cargo'){
+      const amt = document.getElementById('cargo-amt-'+id).value;
+      const date = document.getElementById('cargo-date-'+id).value;
+      const note = document.getElementById('cargo-note-'+id).value;
+      if(!amt || Number(amt)<=0) return;
+      addCargo(id, amt, date, note);
+    }
+    else if(action==='cancel-cargo'){ document.getElementById('cargoform-wrap-'+id).classList.add('hidden'); }
+    else if(action==='toggle-pago-form'){
+      const wrap = document.getElementById('pagoform-wrap-'+id);
+      wrap.innerHTML = pagoFormHTML(id);
+      wrap.classList.remove('hidden');
+    }
+    else if(action==='confirm-pago'){
+      const amt = document.getElementById('pago-amt-'+id).value;
+      const date = document.getElementById('pago-date-'+id).value;
+      if(!amt || Number(amt)<=0) return;
+      addPago(id, amt, date);
+    }
+    else if(action==='cancel-pago'){ document.getElementById('pagoform-wrap-'+id).classList.add('hidden'); }
+    else if(action==='delete-receivable'){ removeReceivable(id); }
+    else if(action==='add-debtor'){
+      const name = prompt('¿A quién le vas a llevar la cuenta?');
+      if(!name) return;
+      addDebtor(name);
     }
     else if(action==='reset-all'){
       const msg = (cloudUrl && cloudKey)
